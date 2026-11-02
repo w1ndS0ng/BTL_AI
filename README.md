@@ -187,7 +187,7 @@ tictactoe-validate --games 50 --iterations 3000
 
 Mở `mcts_sweep.csv` bằng Excel để lập bảng kết quả. File `win_rate.png` có thể đưa trực tiếp vào phần kết quả của báo cáo sau khi kiểm tra nhãn và cấu hình thực nghiệm.
 
-## Gợi ý phát triển tiếp
+## Đề xuất phát triển tiếp
 
 - Bổ sung giao diện đồ họa bằng Pygame/Tkinter.
 - Chạy nhiều seed hơn và thêm khoảng tin cậy.
