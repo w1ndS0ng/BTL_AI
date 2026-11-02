@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tictactoe-ai-assignment"
+version = "0.1.0"
+description = "Minimax Alpha-Beta and MCTS-UCT backbone for generalized Tic-Tac-Toe"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+plot = ["matplotlib>=3.8"]
+
+[project.scripts]
+tictactoe-play = "tictactoe_ai.cli:main"
+tictactoe-experiment = "tictactoe_ai.experiments:main"
+tictactoe-validate = "tictactoe_ai.validate:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+

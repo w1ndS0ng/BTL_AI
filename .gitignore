@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.egg-info/
+results/
+results-smoke/
+de_bai_AI_2026_2027.docx
+source-image1.png
+
