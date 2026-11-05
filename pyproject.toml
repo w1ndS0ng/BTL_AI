@@ -16,6 +16,7 @@ plot = ["matplotlib>=3.8"]
 tictactoe-play = "tictactoe_ai.cli:main"
 tictactoe-experiment = "tictactoe_ai.experiments:main"
 tictactoe-validate = "tictactoe_ai.validate:main"
+xiangqi-demo = "xiangqi_ai.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

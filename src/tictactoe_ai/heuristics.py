@@ -71,10 +71,13 @@ def heuristic_rollout_move(board: Board, rng: random.Random) -> Move:
     if blocking:
         return rng.choice(blocking)
 
-    # Nếu không có đòn chiến thuật, ưu tiên các ô gần trung tâm.
+    # Chọn nước tạo nhiều chuỗi có lợi; trung tâm chỉ dùng khi bằng điểm.
     center = (board.size - 1) / 2
-    ranked = sorted(moves, key=lambda m: abs(m[0] - center) + abs(m[1] - center))
-    best_distance = abs(ranked[0][0] - center) + abs(ranked[0][1] - center)
-    best = [m for m in ranked if abs(m[0] - center) + abs(m[1] - center) == best_distance]
+    def score(move: Move) -> tuple[int, float]:
+        return (evaluate(board.play(move), board.current_player),
+                -abs(move[0] - center) - abs(move[1] - center))
+    scores = {move: score(move) for move in moves}
+    highest = max(scores.values())
+    best = [move for move in moves if scores[move] == highest]
     return rng.choice(best)
 

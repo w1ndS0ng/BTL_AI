@@ -187,10 +187,53 @@ tictactoe-validate --games 50 --iterations 3000
 
 Mở `mcts_sweep.csv` bằng Excel để lập bảng kết quả. File `win_rate.png` có thể đưa trực tiếp vào phần kết quả của báo cáo sau khi kiểm tra nhãn và cấu hình thực nghiệm.
 
+## Mở rộng 5: rollout heuristic và đo cải thiện
+
+Rollout heuristic ưu tiên: thắng ngay → chặn thua → tối đa điểm chuỗi quân → gần trung tâm. Điểm chuỗi được mô tả ngắn trong [ghi chú mở rộng](docs/ghi_chu_mo_rong.txt).
+
+Chạy từ thư mục gốc, sau khi cài package hoặc đặt `$env:PYTHONPATH = "src"`:
+
+```powershell
+# 50 ván mỗi rollout; đổi bên đi trước, cùng seed và đối thủ ngẫu nhiên
+python -m tictactoe_ai.experiments --games 50 --iterations 100 --c-values 1.4 --output results/extension_3x3
+
+# Bàn 5x5 thắng 5; có thể đổi --size thành 9 cho bàn mặc định của dự án
+python -m tictactoe_ai.experiments --size 5 --win-length 5 --games 50 --iterations 100 --c-values 1.4 --output results/extension_5x5
+```
+
+`rollout_comparison.csv` chứa mức tăng tỷ lệ thắng (`win_rate_delta_pp`, đơn vị điểm phần trăm), mức tăng tỷ lệ không thua và thời gian hai rollout. `mcts_sweep.csv` giữ số thắng/hòa/thua. Giá trị chênh lệch âm nghĩa là heuristic kém hơn ở cấu hình đó. Đồ thị hiển thị cả hai rollout nếu có `matplotlib`.
+
+Các lệnh trên là phép đo minh họa; chạy toàn bộ dải của đề bằng `--iterations 100 500 1000 2000 5000 --c-values 0.5 1.0 1.4 2.0`. Thời gian tăng mạnh trên bàn lớn. Các phép đo dùng đối thủ `RandomPlayer`, chọn trong tập nước ứng viên; không chứng minh bất bại trước mọi đối thủ.
+
+Kết quả chạy thực tế và cấu hình nằm trong [note kết quả](docs/ket_qua_mo_rong.txt). Heuristic hướng dẫn rollout bằng tri thức viết tay; value network học cách ước lượng giá trị trạng thái từ dữ liệu. Code hiện không có mạng nơ-ron.
+
+## Mở rộng 6: cờ tướng
+
+Module `src/xiangqi_ai/` có luật đi đủ 7 quân, kiểm tra chiếu/tướng đối mặt, Minimax–Alpha-Beta và MCTS–UCT. Luật cơ bản được đối chiếu với [tài liệu WXF, chương 4–5](https://www.wxf-xiangqi.org/images/free_download_books/xiangqi_introduction_chessplayers_20150323.pdf). Vai trò từng module, trọng số lượng giá và giới hạn được ghi trong [ghi chú mở rộng](docs/ghi_chu_mo_rong.txt).
+
+```powershell
+# Chạy thử ngắn hai AI, không cần giao diện
+$env:PYTHONPATH = "src"
+python -m xiangqi_ai.cli --red minimax --black mcts --depth 1 --iterations 5 --rollout-steps 3 --max-plies 4
+
+# Tăng ngân sách khi cần; lệnh này có thể chạy lâu hơn
+python -m xiangqi_ai.cli --red minimax --black mcts --depth 2 --iterations 50 --rollout-steps 20 --max-plies 20
+
+# Xem tùy chọn và chạy toàn bộ test
+python -m xiangqi_ai.cli --help
+python -m unittest discover -s tests -v
+```
+
+Cài lại bằng `python -m pip install -e ".[plot]"` để có thêm lệnh tắt `xiangqi-demo`. Đổi `--rollout random` để dùng mô phỏng ngẫu nhiên, `--c` để đổi hệ số UCT, `--seed` để lặp lại lượt chạy.
+
+Quân đỏ dùng chữ hoa, đen dùng chữ thường: `K` tướng, `A` sĩ, `E` tượng, `H` mã, `R` xe, `C` pháo, `P` tốt. Tọa độ là `(hàng, cột)` từ `(0,0)` phía trên trái; đỏ ở dưới và đi trước. `--max-plies` đếm số lượt của từng bên; hết ngân sách báo `move_limit`, không tự kết luận hòa.
+
+Chưa xử lý phân xử lặp nước, chiếu dai và đuổi dai theo thể lệ thi đấu. Đây là chương trình thuật toán tối thiểu, với tìm kiếm giới hạn ngân sách, chưa phải engine thi đấu hoàn chỉnh.
+
 ## Đề xuất phát triển tiếp
 
 - Bổ sung giao diện đồ họa bằng Pygame/Tkinter.
 - Chạy nhiều seed hơn và thêm khoảng tin cậy.
 - Tối ưu bàn lớn bằng Zobrist hashing, transposition table và progressive widening.
-- Mở rộng mô hình trạng thái/nước đi cho cờ tướng.
+- Bổ sung phân xử lặp nước và tối ưu sức cờ tướng.
 

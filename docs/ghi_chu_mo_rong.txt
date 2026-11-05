@@ -1,0 +1,84 @@
+GHI CHÚ YÊU CẦU 5 VÀ 6
+
+1. ROLLOUT HEURISTIC CHO TIC-TAC-TOE
+
+File: src/tictactoe_ai/heuristics.py
+- evaluate(board, player): điểm bàn cờ theo góc nhìn người chơi.
+  Thắng: +1.000.000; thua: -1.000.000.
+  Duyệt các cửa sổ dài k theo ngang, dọc và hai đường chéo.
+  Cửa sổ có cả hai màu: bỏ qua. Chỉ có t quân ta: +10^t;
+  chỉ có t quân đối thủ: -10^t. Cửa sổ trống: 0.
+- heuristic_rollout_move(board, rng): thắng ngay -> chặn thua ngay
+  -> tối đa evaluate sau nước đi -> gần trung tâm -> phá hòa ngẫu nhiên.
+- MCTS vẫn thực hiện selection, expansion, simulation, backpropagation.
+  Chỉ chính sách chọn nước trong simulation thay đổi giữa hai rollout.
+  Cả hai cấu hình đều có bộ chọn thắng/chặn ngay ở gốc như code ban đầu.
+
+2. ĐO MỨC CẢI THIỆN
+
+File: src/tictactoe_ai/experiments.py
+- run_match_series: MCTS đấu RandomPlayer; đổi X/O sau mỗi ván.
+- Cùng iterations, c, seed, kích thước bàn, số ván và đối thủ cho hai rollout.
+  Seed giống nhau không có nghĩa chuỗi trạng thái hai phương pháp giống nhau.
+- RandomPlayer và rollout random chọn ngẫu nhiên trong candidate_moves;
+  trên bàn lớn đây là các ô lân cận quân đã đánh, không phải mọi ô trống.
+- compare_rollouts: ghép cấu hình tương ứng và tính:
+  win_rate_delta_pp = 100 * (tỷ lệ thắng heuristic - tỷ lệ thắng random).
+  Ví dụ 84% -> 86% là tăng 2 điểm phần trăm, không phải tăng 2% tương đối.
+- Đo thêm thắng/hòa/thua, tỷ lệ không thua và thời gian trung bình mỗi ván.
+- Mức cải thiện có thể âm; cần báo đúng số liệu, không ép heuristic phải tốt hơn.
+- 50 ván mỗi kiểu là một cấu hình thử nghiệm, chưa đủ kết luận tổng quát.
+  Nên chạy nhiều seed và dải iteration/c của đề khi làm báo cáo cuối.
+- Kết quả thô nằm trong results/<tên_lần_chạy>/; file results được gitignore.
+  Số liệu minh họa được lưu riêng tại docs/ket_qua_mo_rong.txt.
+
+3. LIÊN HỆ VALUE NETWORK
+
+Heuristic dùng tri thức viết tay để hướng mô phỏng đến thế cờ có triển vọng.
+Value network học từ dữ liệu để dự đoán giá trị trạng thái, có thể thay thế
+hoặc giảm rollout dài. Cùng mục tiêu hỗ trợ ước lượng triển vọng của trạng thái,
+nhưng heuristic rollout là chính sách chọn nước, không phải một value network.
+Dự án này không huấn luyện mạng nơ-ron.
+
+4. CÁC MODULE CỜ TƯỚNG
+
+Thư mục: src/xiangqi_ai/
+- board.py: bàn 10 hàng x 9 cột, trạng thái bất biến, lượt đi, áp dụng nước,
+  xác định bên thắng. Đỏ (chữ hoa) ở dưới, đi trước; đen (chữ thường) ở trên.
+  Hàng 0..9, cột 0..8. Move = ((hàng_đầu, cột_đầu), (hàng_đích, cột_đích)).
+- rules.py: pseudo_moves sinh nước theo luật từng quân; in_check kiểm tra
+  tướng bị tấn công; legal_moves loại nước khiến tướng mình còn bị chiếu.
+  Bao gồm cung, sông, cản chân mã, mắt tượng, ngòi pháo và tướng đối mặt.
+  Hết nước đi hợp lệ là thua, cả trường hợp không bị chiếu.
+- heuristics.py: evaluate tính giá trị quân và thưởng vị trí.
+  Tướng 100000; xe 900; pháo 450; mã 400; sĩ/tượng 200; tốt 100.
+  Tốt thưởng 15 mỗi hàng tiến từ phía nhà, thêm 100 khi qua sông.
+  Xe/mã/pháo thưởng 4*(4-|cột-4|) để ưu tiên cột trung tâm.
+  Điểm = tổng quân mình - tổng quân đối thủ; đây là trọng số thực nghiệm.
+  rollout_move ưu tiên điểm bắt quân: 10*giá trị quân bị bắt + evaluate sau đi;
+  nếu bằng điểm thì chọn ngẫu nhiên.
+- minimax.py: Minimax giới hạn độ sâu + Alpha-Beta, sắp nước theo evaluate.
+  Thắng/thua dùng điểm +/- (1000000 + độ_sâu_còn_lại), ưu tiên thắng sớm.
+  nodes và cutoffs dùng để theo dõi số nút/cắt nhánh.
+- mcts.py: MCTS-UCT; W được ghi theo bên vừa đi, chọn con cuối bằng N lớn nhất.
+  Rollout random hoặc heuristic, giới hạn rollout_steps để tránh vòng lặp dài.
+  Nếu chưa kết thúc: reward = 0.5 + 0.5*tanh(evaluate/1500).
+  Nếu đã kết thúc: thắng 1, thua 0. W có thể chứa giá trị mềm, không chỉ số thắng.
+- cli.py: chạy AI-AI trong terminal, in nước đi và bàn cờ; không có GUI.
+  max_plies đếm từng lượt đi, không phải cặp lượt đỏ-đen.
+  Chạm giới hạn: status=move_limit, winner=null; không coi đây là hòa chính thức.
+
+Ký hiệu quân: K=tướng, A=sĩ, E=tượng, H=mã, R=xe, C=pháo, P=tốt.
+
+5. GIỚI HẠN
+
+- Chưa xử lý luật phân xử chiếu dai/đuổi dai/lặp nước của giải đấu.
+- Chưa có khai cuộc, tàn cuộc, transposition table hoặc huấn luyện mạng.
+- Giới hạn rollout và độ sâu là ngân sách tính toán, không bảo đảm chơi tối ưu.
+- Trọng số heuristic đơn giản; không có bảo đảm MCTS cờ tướng không thua.
+- Thí nghiệm rollout trong experiments.py là Tic-Tac-Toe; CLI cờ tướng
+  hiện dùng minh họa thuật toán, không phải bộ đánh giá sức cờ giải đấu.
+
+Tham khảo luật cơ bản: WXF, Introduction to Chinese Chess for International
+Chess Players, chương 4-5:
+https://www.wxf-xiangqi.org/images/free_download_books/xiangqi_introduction_chessplayers_20150323.pdf

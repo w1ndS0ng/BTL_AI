@@ -1,0 +1,40 @@
+KẾT QUẢ CHẠY MỞ RỘNG 5 VÀ KIỂM TRA MỞ RỘNG 6
+
+Cấu hình chung: seed=42, c=1.4, iterations=100, 50 ván MỖI rollout.
+Đối thủ: RandomPlayer; đổi bên đi trước mỗi ván. Tổng cộng 200 ván.
+Thời gian là trung bình toàn ván, đo trên máy hiện tại; có chạy tác vụ song song.
+
+Bàn   k  Rollout     Thắng  Hòa  Thua  Tỷ lệ thắng  Giây/ván
+3x3   3  random        42    7    1      84%         0.00847
+3x3   3  heuristic     43    7    0      86%         0.02928
+5x5   5  random        37   13    0      74%         0.53826
+5x5   5  heuristic     33   17    0      66%         4.49836
+
+Chênh lệch heuristic - random:
+- 3x3: tỷ lệ thắng +2 điểm phần trăm; không thua +2 điểm phần trăm.
+- 5x5: tỷ lệ thắng -8 điểm phần trăm; không thua không thay đổi (đều 100%).
+
+Nhận xét: heuristic tốt hơn nhẹ trên 3x3 trong lần chạy này, nhưng trên 5x5
+chuyển một số kết quả thắng thành hòa và tăng chi phí tính toán. Không có bằng
+chứng ở đây cho kết luận heuristic luôn tốt hơn. Cần tăng số seed, khảo sát
+đủ dải c/iteration trước khi đưa ra kết luận tổng quát.
+Đây chỉ là một điểm iteration trong dải khảo sát; chưa chạy toàn bộ ma trận đề.
+
+Chạy lại:
+python -m tictactoe_ai.experiments --games 50 --iterations 100 --c-values 1.4 --output results/extension_3x3
+python -m tictactoe_ai.experiments --size 5 --win-length 5 --games 50 --iterations 100 --c-values 1.4 --output results/extension_5x5
+
+Kết quả thô:
+- results/extension_3x3/{mcts_sweep.csv,rollout_comparison.csv,summary.json}
+- results/extension_5x5/{mcts_sweep.csv,rollout_comparison.csv,summary.json}
+Các CSV/JSON đã được tạo. Máy hiện tại chưa có matplotlib nên chưa tạo PNG;
+cài optional dependency [plot] rồi chạy lại để có đồ thị.
+Các thư mục results được gitignore; file note này giữ lại số liệu cho repository.
+
+Kiểm tra code:
+- 26/26 unittest đạt, gồm các test cũ và luật/tìm kiếm cờ tướng.
+- Cờ tướng ban đầu: 44 nước hợp lệ; 1920 chuỗi hai lượt đi.
+- Đã chạy thử Minimax depth=1 và depth=2; MCTS cả hai kiểu rollout.
+- Đã kiểm tra UCT thăm lại nút con sau khi mở rộng đủ 44 nước gốc.
+- Chạy lại kiểm chứng MCTS Tic-Tac-Toe với Minimax tối ưu:
+  10 ván, 800 iteration, seed=42: 10 hòa, không ghi nhận thua.

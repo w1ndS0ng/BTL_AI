@@ -50,6 +50,7 @@ class MCTS:
         self.root: Node | None = None
 
     def choose_move(self, board: Board) -> Move:
+        self.root = None
         if board.is_terminal():
             raise ValueError("cannot choose a move from a terminal board")
         moves = board.candidate_moves()
